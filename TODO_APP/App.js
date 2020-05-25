@@ -9,24 +9,47 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, View, Text, StatusBar, TextInput, Dimensions, Platform } from 'react-native';
 import { Header, LearnMoreLinks, Colors, DebugInstructions, ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
+import ToDo from './ToDo';
 
 const { height, width } = Dimensions.get("window") //margin을 주기 위한 방법. 휴대폰 스크린의 높이, 가로 길이를 가져온다.
 
 export default class App extends React.Component {
+  //value control을 위한 state 초기화
+  state = {
+    newToDo: ""
+  }
+
   render() {
+    const { newToDo } = this.state.newToDo
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         <Text style={styles.title}>Kawai To Do</Text>
         <View style={styles.card}>
-          <TextInput style={styles.input} placeholder={"New To Do"} />
-          {/* TextInput requires height */}
-
+          <TextInput
+            style={styles.input}
+            placeholder={"New To Do"}
+            value={newToDo}
+            onChangeText={this._controlNewToDo}
+            placeholderTextColor={"#999"} //Text color of placeholder
+          //ios 키보드 설정: returnKeyType={"done"} (스페이스바 오른쪽 버튼을 'done'으로 만듦)
+          //ios 키보드 설정: autoCorrect={false} (자동 수정)
+          />
+          {/* New To Do 제목 아래 적을 내용. 제목란은 상단 고정하는 반면, 내용란은 Scroll을 내릴 수 있어야 함. */}
+          <ScrollView>
+            <ToDo />
+          </ScrollView>
         </View>
       </View>
     )
   }
 
+  //text input을 관리하기 위한 함수
+  _controlNewToDo = text => { //이벤트로부터 'text'를 가져옴
+    this.setState({
+      newToDo: text
+    })
+  }
 }
 
 const styles = StyleSheet.create({
@@ -64,6 +87,14 @@ const styles = StyleSheet.create({
         elevation: 5
       }
     })
+  },
+
+  //New To Do 인풋창 설정
+  input: {
+    padding: 20,
+    borderBottomWidth: 1, //StyleSheet.hairlineWidth은 너무 얇음
+    borderBottomColor: '#bbb',
+    fontSize: 25
   }
 
 });
