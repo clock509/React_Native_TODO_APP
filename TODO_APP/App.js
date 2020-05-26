@@ -9,6 +9,7 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, View, Text, StatusBar, TextInput, Dimensions, Platform } from 'react-native';
 import { Header, LearnMoreLinks, Colors, DebugInstructions, ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
+//import { AppLoading } from 'expo';
 import ToDo from './ToDo';
 
 const { height, width } = Dimensions.get("window") //margin을 주기 위한 방법. 휴대폰 스크린의 높이, 가로 길이를 가져온다.
@@ -16,11 +17,20 @@ const { height, width } = Dimensions.get("window") //margin을 주기 위한 방
 export default class App extends React.Component {
   //value control을 위한 state 초기화
   state = {
-    newToDo: ""
+    newToDo: '', //TextInput으로 전달. ///TODO를 디스크에 저장: 앱을 열면, TODO 리스트를 불러올 수 있어야 한다.
+    loadedToDos: false
+  }
+
+  componentDidMount = () => {
+    this._loadToDos();
   }
 
   render() {
-    const { newToDo } = this.state.newToDo
+    const { newToDo, loadedToDos } = this.state.newToDo
+    //TODO가 로딩이 안 되어있다면
+    if (!loadedToDos) {
+      return <AppLoading />;
+    }
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
@@ -36,19 +46,28 @@ export default class App extends React.Component {
           //ios 키보드 설정: autoCorrect={false} (자동 수정)
           />
           {/* New To Do 제목 아래 적을 내용. 제목란은 상단 고정하는 반면, 내용란은 Scroll을 내릴 수 있어야 함. */}
-          <ScrollView>
-            <ToDo />
+          <ScrollView contentContainerStyle={styles.toDos}>
+            {/* ToDo 컴포넌트의 value 관리. 누군가 '수정하기'를 클릭했을 떄, 해당 텍스트를 복사해서 state에 보낸다.*/}
+            <ToDo text={"Hello I'm a To Do."} />
           </ScrollView>
         </View>
       </View>
     )
   }
 
-  //text input을 관리하기 위한 함수
+  //text input의 value를 관리하기 위한 함수
   _controlNewToDo = text => { //이벤트로부터 'text'를 가져옴
     this.setState({
       newToDo: text
     })
+  }
+
+  //TODO 리스트 로딩이 끝나면 loadedToDos의 state를 true로 바꾼다.
+  _loadToDos = () => {
+    this.setState({
+      loadedToDos: true
+    })
+
   }
 }
 
@@ -95,6 +114,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, //StyleSheet.hairlineWidth은 너무 얇음
     borderBottomColor: '#bbb',
     fontSize: 25
+  },
+
+  toDos: {
+    alignItems: "center"
   }
 
 });
