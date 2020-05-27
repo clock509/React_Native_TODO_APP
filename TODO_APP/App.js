@@ -51,7 +51,7 @@ export default class App extends React.Component {
           />
           {/* New To Do 제목 아래 적을 내용. 제목란은 상단 고정하는 반면, 내용란은 Scroll을 내릴 수 있어야 함. */}
           <ScrollView contentContainerStyle={styles.toDos}>
-            {Object.values(toDos).map(toDo =>
+            {Object.values(toDos).reverse().map(toDo => //업데이트하거나, 새로 추가한 TODO가 맨 마지막으로 내려간다. 즉, 오브젝트를 추가할 때 맨 상단에 오길 원한다. ==> map함수에 reverse를 추가한다.
               <ToDo
                 key={toDo.id}
                 {...toDo}
@@ -75,11 +75,20 @@ export default class App extends React.Component {
   }
 
   //TODO 리스트 로딩이 끝나면 loadedToDos의 state를 true로 바꾼다.
-  _loadToDos = () => {
-    console.log("_loadToDos");
-    this.setState({
-      loadedToDos: true
-    })
+  //TODO 로딩 //async function: 로딩이 끝날 때까지 기다려야 한다(여기선 getItem이 끝날 때까지 기다린다는 의미)
+  //async가 없어 기다리지 않을 경우, 에러가 생길 수 있다.
+  _loadToDos = async () => {
+    try {
+
+      const toDos = await AsyncStorage.getItem("toDos"); //AsyncStorage: 작은 variable(key-value 오브젝트)을 폰 스토리지에 저장함. //저장하려는 데이터를 string으로 만들어주면 됨.
+      const parsedToDos = JSON.parse(toDos); //단, async storage에서 얻는 todo는 오브젝트가 아니므로 변환시켜야 함.
+      //console.log(toDos); //콘솔창에 나오는 형태는 오브젝트처럼 보이지만 string이다.
+      this.setState({ loadedToDos: true, toDos: parsedToDos || {} }); //toDos: 디스크에서 얻어와 파싱한 것(parsedToDos)을 state에 넣는다.
+      // || {} 를 추가해주는 까닭은, 앱이 처음 시작할 때 toDos라는 key가 없으므로 실장비에서는 Object.values null 에러가 나기 때문이다. 
+      //console.log(this.state.loadedToDos)
+    } catch (err) {
+      console.log(err) //에러 잡는 구문 try... catch..
+    }
   }
 
   _addToDo = () => {
@@ -182,7 +191,7 @@ export default class App extends React.Component {
         }
       };
       this._saveToDos(newState.toDos) //CRUD 모든 기능에서 리턴하기 전에 TODO를 저장한다.
-      return { ...newState };
+      return { ...newState }; //문제: 업데이트하거나, 새로 추가한 TODO가 맨 마지막으로 내려간다. 즉, 오브젝트를 추가할 때 맨 상단에 오길 원한다. ==> map함수에 reverse를 추가한다.
     });
   }
 

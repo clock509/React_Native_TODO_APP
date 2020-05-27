@@ -92,19 +92,27 @@ export default class ToDo extends React.Component {
                   <Text style={styles.actionText}>수정하기</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity onPressOut={() => deleteToDo(id)}>
+              <TouchableOpacity onPressOut={event => { event.stopPropagation; deleteToDo(id); }}>
                 <View style={styles.actionContainer}>
                   {/* 삭제 글씨를 터치하면 TO DO List가 삭제된다.. */}
                   <Text style={styles.actionText}>삭제</Text>
                 </View>
               </TouchableOpacity>
             </View>
-          )}
+          )
+        }
       </View>
     )
   }
+  //모바일에서 뭔가를 터치하면 화면이 흔들리는 현상 방지를 위해 event 추가
+  //event란 뭔가 일어나는 것이다. 이 TODO APP에서는 이벤트에 연결된 것은 두 가지(버튼들, 스크롤뷰) 2개이다.
+  //즉, 버튼을 누를 때마다 올리거나 내릴 때마다 이벤트가 전파(propagate)된다.
+  //여기서는 TouchableOpacity에 등록된 이벤트가 스크롤뷰에게 전파되는데, 이를 방지해야 한다.
+  //그러므로 touchable opacity에 연결된 모든 function에 event.stop.propagation 옵션을 준다.
+
   //리스트 작성 완료/미완료 상태를 구분하기 위한 함수
-  _toggleComplete = () => {
+  _toggleComplete = (event) => {
+    event.stopPropagation();
     console.log("_toggleComplete");
     const { isCompleted, uncompleteToDo, completeToDo, id } = this.props;
     if (isCompleted) {
@@ -115,12 +123,14 @@ export default class ToDo extends React.Component {
   };
 
   //편집 모드를 할 떄, 안 할 때를 구분하기 위한 함수
-  _startEditing = () => {
+  _startEditing = (event) => {
+    event.stopPropagation();
     console.log("_startEditing");
     this.setState({ isEditing: true })
   }
 
-  _finishEditing = () => {
+  _finishEditing = (event) => {
+    event.stopPropagation();
     console.log("_finishEditing");
     const { toDoValue } = this.state;
     const { id, updateToDo } = this.props;
