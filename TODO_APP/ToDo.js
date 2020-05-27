@@ -1,21 +1,37 @@
 import React, { Component } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, TextInput } from "react-native";
+import PropTypes from "prop-types";
 
 const { width, height } = Dimensions.get("window");
 
 //클래스 컴포넌트를 만드는 이유: editing 버튼을 통해 state을 수정 모드로 변경할 수 있어야 하기 때문이다.
 //즉 stateful component가 필요하다.
 export default class ToDo extends React.Component {
-  //이 ToDo App은 2개의 state가 있다. 하나는 수정할 떄, 다른 하나는 수정을 안 할 때(그냥 보여줄 때)이다.
-  //따라서 2개의 state를 만들고, 둘 사이를 이동해야 한다.  
-  state = {
-    isEditing: false,
-    isCompleted: false,
-    todoValue: ""
+  constructor(props) {
+    super(props);
+    this.state = { isEditing: false, toDoValue: props.text };
   }
+
+  static propTypes = {
+    text: PropTypes.string.isRequired,
+    isCompleted: PropTypes.bool.isRequired,
+    deleteToDo: PropTypes.func.isRequired,
+    id: PropTypes.string.isRequired,
+    uncompleteToDo: PropTypes.func.isRequired,
+    completeToDo: PropTypes.func.isRequired,
+    updateToDo: PropTypes.func.isRequired
+  };
+
+  //이 ToDo App은 2개의 state가 있다. 하나는 수정할 때, 다른 하나는 수정을 안 할 때(그냥 보여줄 때)이다.
+  //따라서 2개의 state를 만들고, 둘 사이를 이동해야 한다.  
+  // state = {
+  //   isEditing: false,
+  //   isCompleted: false,
+  //   toDoValue: ""
+  // }
   render() {
-    const { isCompleted, isEditing, todoValue } = this.state
-    const { text } = this.props;
+    const { isEditing, toDoValue } = this.state
+    const { text, id, deleteToDo, updateToDo, isCompleted } = this.props;
     return (
       <View style={styles.container}>
         <View style={styles.column}>
@@ -38,7 +54,7 @@ export default class ToDo extends React.Component {
                 styles.input,
                 styles.text,
                 isCompleted ? styles.completedText : styles.uncompletedText]} //완성, 미완성에 따라 줄 긋거나 안 그음.
-              value={todoValue}
+              value={toDoValue}
               multiline={true} //TextInput의 내용이 길어질 수도 있으므로 multiline은 true.
               onChangeText={this._controlInput}
               returnKeyType={"done"}
@@ -47,6 +63,7 @@ export default class ToDo extends React.Component {
           ) : (
               <Text
                 style={[
+                  styles.input,
                   styles.text,
                   isCompleted ? styles.completedText : styles.uncompletedText
                 ]}
@@ -75,7 +92,7 @@ export default class ToDo extends React.Component {
                   <Text style={styles.actionText}>수정하기</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPressOut={() => deleteToDo(id)}>
                 <View style={styles.actionContainer}>
                   {/* 삭제 글씨를 터치하면 TO DO List가 삭제된다.. */}
                   <Text style={styles.actionText}>삭제</Text>
@@ -88,30 +105,32 @@ export default class ToDo extends React.Component {
   }
   //리스트 작성 완료/미완료 상태를 구분하기 위한 함수
   _toggleComplete = () => {
-    this.setState(prevState => {
-      return {
-        isCompleted: !prevState.isCompleted //클릭할 때마다 prevState의 반대(false : true)값을 state에 전달한다.
-      }
-    })
-  }
+    console.log("_toggleComplete");
+    const { isCompleted, uncompleteToDo, completeToDo, id } = this.props;
+    if (isCompleted) {
+      uncompleteToDo(id);
+    } else {
+      completeToDo(id);
+    }//클릭할 때마다 prevState의 반대(false : true)값을 state에 전달한다.
+  };
 
   //편집 모드를 할 떄, 안 할 때를 구분하기 위한 함수
   _startEditing = () => {
-    const { text } = this.props; //props를 state에 넣어서 나중에 관리할 수 있도록 한다.
-    this.setState({
-      isEditing: true,
-      todoValue: text
-    })
+    console.log("_startEditing");
+    this.setState({ isEditing: true })
   }
 
   _finishEditing = () => {
-    this.setState({
-      isEditing: false
-    })
+    console.log("_finishEditing");
+    const { toDoValue } = this.state;
+    const { id, updateToDo } = this.props;
+    updateToDo(id, toDoValue);
+    this.setState({ isEditing: false })
   }
 
   _controlInput = (text) => {
-    this.setState({ todoValue: text })
+    console.log("_controlInput");
+    this.setState({ toDoValue: text })
   }
 }
 
